@@ -20,7 +20,7 @@ export async function scanImage(file, token) {
     throw new Error(err.detail || 'Scan failed')
   }
 
-  return res.json() // expected: { name, expiry_date }
+  return res.json() // expected: { name, expiry_date, allergens, nutrition }
 }
 
 // Fridge items via Supabase
@@ -44,6 +44,17 @@ export async function addItem({ userId, name, expiryDate }) {
 
   if (error) throw error
   return data
+}
+
+// Allergens stored in Supabase user metadata
+export async function getUserAllergens() {
+  const { data: { user } } = await supabase.auth.getUser()
+  return user?.user_metadata?.allergens ?? []
+}
+
+export async function saveUserAllergens(allergens) {
+  const { error } = await supabase.auth.updateUser({ data: { allergens } })
+  if (error) throw error
 }
 
 export async function deleteItem(id) {
