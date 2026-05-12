@@ -6,13 +6,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    setMessage('')
     setLoading(true)
 
     try {
@@ -23,8 +21,7 @@ export default function LoginPage() {
       } else {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setMessage('Account created! Check your email to confirm, then log in.')
-        setMode('login')
+        // session is set automatically via onAuthStateChange in App.jsx
       }
     } catch (err) {
       setError(err.message)
@@ -52,11 +49,6 @@ export default function LoginPage() {
           {error && (
             <div className="mb-4 px-3 py-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
               {error}
-            </div>
-          )}
-          {message && (
-            <div className="mb-4 px-3 py-2 bg-fresh-50 border border-fresh-200 text-fresh-700 text-sm rounded-lg">
-              {message}
             </div>
           )}
 
@@ -97,7 +89,7 @@ export default function LoginPage() {
           <p className="mt-5 text-center text-sm text-slate-500">
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button
-              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setMessage('') }}
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }}
               className="text-fresh-600 hover:underline font-medium"
             >
               {mode === 'login' ? 'Register' : 'Sign In'}
