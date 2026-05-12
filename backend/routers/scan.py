@@ -15,6 +15,9 @@ MAX_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 class ScanResult(BaseModel):
     name: Optional[str]
     expiry_date: Optional[str]
+    ingredients: Optional[str] = None
+    net_weight: Optional[str] = None
+    storage: Optional[str] = None
     ocr_text: str
     saved_item: Optional[dict] = None
 
@@ -37,17 +40,30 @@ async def scan_label(
 
     name = parsed.get("name")
     expiry_date = parsed.get("expiry_date")
+    ingredients = parsed.get("ingredients")
+    net_weight = parsed.get("net_weight")
+    storage = parsed.get("storage")
 
     saved_item = None
-    if save and name:
+    if save and name and expiry_date:
         supabase = get_supabase()
         payload = {
             "user_id": user.id,
             "name": name,
             "expiry_date": expiry_date,
             "quantity": 1,
+            "ingredients": ingredients,
+            "notes": storage,
         }
-        resp = supabase.table("items").insert(payload).execute()
+        resp = supabase.table("fridge_items").insert(payload).execute()
         saved_item = resp.data[0] if resp.data else None
 
-    return ScanResult(name=name, expiry_date=expiry_date, ocr_text=ocr_text, saved_item=saved_item)
+    return ScanResult(
+        name=name,
+        expiry_date=expiry_date,
+        ingredients=ingredients,
+        net_weight=net_weight,
+        storage=storage,
+        ocr_text=ocr_text,
+        saved_item=saved_item,
+    )

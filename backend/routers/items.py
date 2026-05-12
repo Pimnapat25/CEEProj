@@ -13,6 +13,7 @@ class ItemCreate(BaseModel):
     name: str
     expiry_date: Optional[date] = None
     quantity: Optional[int] = 1
+    ingredients: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -20,13 +21,14 @@ class ItemUpdate(BaseModel):
     name: Optional[str] = None
     expiry_date: Optional[date] = None
     quantity: Optional[int] = None
+    ingredients: Optional[str] = None
     notes: Optional[str] = None
 
 
 @router.get("/")
 async def list_items(user=Depends(get_current_user)):
     supabase = get_supabase()
-    resp = supabase.table("items").select("*").eq("user_id", user.id).order("expiry_date").execute()
+    resp = supabase.table("fridge_items").select("*").eq("user_id", user.id).order("expiry_date").execute()
     return resp.data
 
 
@@ -38,16 +40,17 @@ async def create_item(body: ItemCreate, user=Depends(get_current_user)):
         "name": body.name,
         "expiry_date": body.expiry_date.isoformat() if body.expiry_date else None,
         "quantity": body.quantity,
+        "ingredients": body.ingredients,
         "notes": body.notes,
     }
-    resp = supabase.table("items").insert(payload).execute()
+    resp = supabase.table("fridge_items").insert(payload).execute()
     return resp.data[0]
 
 
 @router.patch("/{item_id}")
 async def update_item(item_id: str, body: ItemUpdate, user=Depends(get_current_user)):
     supabase = get_supabase()
-    existing = supabase.table("items").select("id").eq("id", item_id).eq("user_id", user.id).execute()
+    existing = supabase.table("fridge_items").select("id").eq("id", item_id).eq("user_id", user.id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -55,14 +58,14 @@ async def update_item(item_id: str, body: ItemUpdate, user=Depends(get_current_u
     if "expiry_date" in updates and updates["expiry_date"] is not None:
         updates["expiry_date"] = updates["expiry_date"].isoformat()
 
-    resp = supabase.table("items").update(updates).eq("id", item_id).execute()
+    resp = supabase.table("fridge_items").update(updates).eq("id", item_id).execute()
     return resp.data[0]
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_item(item_id: str, user=Depends(get_current_user)):
     supabase = get_supabase()
-    existing = supabase.table("items").select("id").eq("id", item_id).eq("user_id", user.id).execute()
+    existing = supabase.table("fridge_items").select("id").eq("id", item_id).eq("user_id", user.id).execute()
     if not existing.data:
         raise HTTPException(status_code=404, detail="Item not found")
-    supabase.table("items").delete().eq("id", item_id).execute()
+    supabase.table("fridge_items").delete().eq("id", item_id).execute()
