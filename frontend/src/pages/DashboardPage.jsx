@@ -51,56 +51,45 @@ export default function DashboardPage({ session }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold text-slate-800">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Dashboard</h1>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <SummaryCard label="Total Items" value={total} color="text-fresh-600" />
+        <SummaryCard label="Total Items" value={total} color="text-fresh-600 dark:text-fresh-300" />
         <SummaryCard label="Expiring ≤ 3 days" value={expiring3} color="text-red-500" />
         <SummaryCard label="Expiring ≤ 7 days" value={expiring7} color="text-amber-500" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Pie chart */}
         {pieData.length > 0 ? (
-          <div className="bg-white border border-fresh-100 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-700 mb-4">Expiry Overview</h2>
+          <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Expiry Overview</h2>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  innerRadius={40}
-                >
+                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={40}>
                   {pieData.map(entry => (
                     <Cell key={entry.name} fill={PIE_COLORS[entry.name]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--tooltip-bg, #fff)', border: 'none', borderRadius: '8px' }} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="bg-white border border-fresh-100 rounded-2xl p-6 shadow-sm flex items-center justify-center text-slate-400 text-sm">
+          <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm flex items-center justify-center text-slate-400 text-sm">
             No items yet
           </div>
         )}
 
-        {/* Expiring soon list */}
-        <div className="bg-white border border-fresh-100 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-700 mb-4">Expiring Within 7 Days</h2>
+        <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Expiring Within 7 Days</h2>
           {soonItems.length === 0 ? (
             <p className="text-slate-400 text-sm">Nothing expiring soon.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {soonItems.map(item => (
                 <li key={item.id} className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700 font-medium">{item.name}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{item.name}</span>
                   <ExpiryBadge expiryDate={item.expiry_date} />
                 </li>
               ))}
@@ -114,8 +103,8 @@ export default function DashboardPage({ session }) {
 
 function SummaryCard({ label, value, color }) {
   return (
-    <div className="bg-white border border-fresh-100 rounded-2xl px-6 py-5 shadow-sm">
-      <p className="text-sm text-slate-500 mb-1">{label}</p>
+    <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl px-6 py-5 shadow-sm">
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">{label}</p>
       <p className={`text-3xl font-bold ${color}`}>{value}</p>
     </div>
   )

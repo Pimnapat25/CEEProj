@@ -8,8 +8,6 @@ export default function ItemsPage({ session }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-
-  // Add form state
   const [name, setName] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
   const [adding, setAdding] = useState(false)
@@ -52,11 +50,10 @@ export default function ItemsPage({ session }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-slate-800">My Fridge</h1>
+      <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">My Fridge</h1>
 
-      {/* Add item form */}
-      <div className="bg-white border border-fresh-100 rounded-2xl p-6 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-700 mb-4">Add Item Manually</h2>
+      <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Add Item Manually</h2>
         <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
           <input
             type="text"
@@ -64,14 +61,14 @@ export default function ItemsPage({ session }) {
             value={name}
             onChange={e => setName(e.target.value)}
             required
-            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-fresh-300"
+            className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
           />
           <input
             type="date"
             value={expiryDate}
             onChange={e => setExpiryDate(e.target.value)}
             required
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-fresh-300"
+            className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
           />
           <button
             type="submit"
@@ -82,10 +79,9 @@ export default function ItemsPage({ session }) {
             {adding ? 'Adding...' : 'Add'}
           </button>
         </form>
-        {formError && <p className="mt-2 text-red-600 text-sm">{formError}</p>}
+        {formError && <p className="mt-2 text-red-600 dark:text-red-400 text-sm">{formError}</p>}
       </div>
 
-      {/* Items list */}
       {loading ? (
         <div className="py-12"><Spinner /></div>
       ) : error ? (
@@ -97,7 +93,7 @@ export default function ItemsPage({ session }) {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-slate-500">{items.length} item{items.length !== 1 ? 's' : ''} in your fridge</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{items.length} item{items.length !== 1 ? 's' : ''} in your fridge</p>
           {items.map(item => (
             <ItemCard key={item.id} item={item} onDelete={handleDelete} />
           ))}

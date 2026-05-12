@@ -18,7 +18,7 @@ function AuthGuard({ session, children }) {
 
 function Layout({ children }) {
   return (
-    <div className="min-h-screen bg-fresh-50">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
     </div>
@@ -26,9 +26,14 @@ function Layout({ children }) {
 }
 
 export default function App() {
-  const [session, setSession] = useState(undefined) // undefined = loading
+  const [session, setSession] = useState(undefined)
 
   useEffect(() => {
+    // Apply saved theme on load
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark')
+    }
+
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -40,7 +45,7 @@ export default function App() {
 
   if (session === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-fresh-50">
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
         <Spinner size={10} />
       </div>
     )
