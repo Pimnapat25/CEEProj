@@ -105,7 +105,7 @@ export default function ItemsPage({ session }) {
         <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-1">My Allergens</h2>
         <p className="text-xs text-slate-400 mb-4">Select anything you're allergic to — you'll get a warning when scanning labels.</p>
 
-        {/* Common allergen chips */}
+        {/* Allergen chips */}
         <div className="flex flex-wrap gap-2 mb-4">
           {COMMON_ALLERGENS.map(a => (
             <button
@@ -113,10 +113,20 @@ export default function ItemsPage({ session }) {
               onClick={() => toggleAllergen(a)}
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors
                 ${myAllergens.includes(a)
-                  ? 'bg-red-100 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                  ? 'bg-red-500 border-red-500 text-white'
                   : 'bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-fresh-300'}`}
             >
               {a}
+            </button>
+          ))}
+          {/* Custom allergens not in the common list */}
+          {myAllergens.filter(a => !COMMON_ALLERGENS.includes(a)).map(a => (
+            <button
+              key={a}
+              onClick={() => toggleAllergen(a)}
+              className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border bg-red-500 border-red-500 text-white"
+            >
+              {a} <X size={10} />
             </button>
           ))}
         </div>
@@ -139,19 +149,6 @@ export default function ItemsPage({ session }) {
           </button>
         </div>
 
-        {/* Active allergens pills */}
-        {myAllergens.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {myAllergens.map(a => (
-              <span key={a} className="flex items-center gap-1 px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-xs rounded-full border border-red-200 dark:border-red-700">
-                {a}
-                <button onClick={() => toggleAllergen(a)} className="hover:text-red-900 dark:hover:text-red-100">
-                  <X size={11} />
-                </button>
-              </span>
-            ))}
-          </div>
-        )}
 
         <button
           onClick={handleSaveAllergens}
