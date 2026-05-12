@@ -79,7 +79,7 @@ export default function ScannerPage({ session }) {
           <br />
           <span className="text-xs text-slate-400">Supports camera capture on mobile</span>
         </p>
-        <input ref={inputRef} type="file" accept="image/*" capture="environment" onChange={onInputChange} className="hidden" />
+        <input ref={inputRef} type="file" accept="image/*" onChange={onInputChange} className="hidden" />
       </div>
 
       {preview && (
