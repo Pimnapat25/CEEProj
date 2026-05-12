@@ -50,8 +50,6 @@ create policy "Users can manage their own items"
   with check (auth.uid() = user_id);
 ```
 
-Then go to **Authentication → Providers → Email** and disable **"Confirm email"** so users can register without email verification.
-
 ---
 
 ## 2 — Backend Setup
