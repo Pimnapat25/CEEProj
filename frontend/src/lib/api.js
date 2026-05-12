@@ -35,10 +35,15 @@ export async function getItems(userId) {
   return data
 }
 
-export async function addItem({ userId, name, expiryDate }) {
+export async function addItem({ userId, name, expiryDate, ingredients }) {
   const { data, error } = await supabase
     .from('fridge_items')
-    .insert([{ user_id: userId, name, expiry_date: expiryDate }])
+    .insert([{
+      user_id: userId,
+      name,
+      expiry_date: expiryDate || null,
+      ingredients: ingredients || null,
+    }])
     .select()
     .single()
 

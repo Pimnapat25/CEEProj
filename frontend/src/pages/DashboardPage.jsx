@@ -5,6 +5,7 @@ import ExpiryBadge from '../components/ExpiryBadge'
 import Spinner from '../components/Spinner'
 
 function daysUntil(dateStr) {
+  if (!dateStr) return Infinity
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const expiry = new Date(dateStr)
@@ -12,11 +13,22 @@ function daysUntil(dateStr) {
   return Math.ceil((expiry - today) / (1000 * 60 * 60 * 24))
 }
 
+function emojiFor(days) {
+  if (days === Infinity) return '🧊'
+  if (days < 0) return '💀'
+  if (days <= 1) return '🚨'
+  if (days <= 3) return '⚠️'
+  if (days <= 7) return '⏳'
+  if (days <= 30) return '🥦'
+  return '✨'
+}
+
 const PIE_COLORS = {
-  Safe:    '#7dcba4',
-  Soon:    '#fbbf24',
-  Urgent:  '#f87171',
-  Expired: '#94a3b8',
+  Safe:       '#7dcba4',
+  Soon:       '#fbbf24',
+  Urgent:     '#f87171',
+  Expired:    '#94a3b8',
+  'Non-expiring': '#a3a3a3',
 }
 
 export default function DashboardPage({ session }) {
@@ -34,35 +46,37 @@ export default function DashboardPage({ session }) {
   if (loading) return <div className="py-16"><Spinner /></div>
   if (error) return <p className="text-red-600 text-sm">{error}</p>
 
+  const nonExpired = items.filter(i => daysUntil(i.expiry_date) >= 0 || !i.expiry_date)
+  const sortedNonExpired = [...nonExpired].sort(
+    (a, b) => daysUntil(a.expiry_date) - daysUntil(b.expiry_date)
+  )
+
   const total = items.length
   const expiring3 = items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 0 && d <= 3 }).length
   const expiring7 = items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 0 && d <= 7 }).length
 
   const pieData = [
-    { name: 'Safe',    value: items.filter(i => daysUntil(i.expiry_date) > 7).length },
-    { name: 'Soon',    value: items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 4 && d <= 7 }).length },
-    { name: 'Urgent',  value: items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 0 && d <= 3 }).length },
-    { name: 'Expired', value: items.filter(i => daysUntil(i.expiry_date) < 0).length },
+    { name: 'Safe',          value: items.filter(i => { const d = daysUntil(i.expiry_date); return d > 7 && d !== Infinity }).length },
+    { name: 'Soon',          value: items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 4 && d <= 7 }).length },
+    { name: 'Urgent',        value: items.filter(i => { const d = daysUntil(i.expiry_date); return d >= 0 && d <= 3 }).length },
+    { name: 'Expired',       value: items.filter(i => { const d = daysUntil(i.expiry_date); return d < 0 }).length },
+    { name: 'Non-expiring',  value: items.filter(i => !i.expiry_date).length },
   ].filter(d => d.value > 0)
-
-  const soonItems = items
-    .filter(i => { const d = daysUntil(i.expiry_date); return d >= 0 && d <= 7 })
-    .sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date))
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">🥗 Dashboard</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <SummaryCard label="Total Items" value={total} color="text-fresh-600 dark:text-fresh-300" />
-        <SummaryCard label="Expiring ≤ 3 days" value={expiring3} color="text-red-500" />
-        <SummaryCard label="Expiring ≤ 7 days" value={expiring7} color="text-amber-500" />
+        <SummaryCard label="🧺 Total Items" value={total} color="text-fresh-600 dark:text-fresh-300" />
+        <SummaryCard label="🚨 Expiring ≤ 3 days" value={expiring3} color="text-red-500" />
+        <SummaryCard label="⏳ Expiring ≤ 7 days" value={expiring7} color="text-amber-500" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {pieData.length > 0 ? (
           <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Expiry Overview</h2>
+            <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">🥧 Expiry Overview</h2>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} innerRadius={40}>
@@ -77,22 +91,28 @@ export default function DashboardPage({ session }) {
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm flex items-center justify-center text-slate-400 text-sm">
-            No items yet
+            No items yet 🌱
           </div>
         )}
 
         <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Expiring Within 7 Days</h2>
-          {soonItems.length === 0 ? (
-            <p className="text-slate-400 text-sm">Nothing expiring soon.</p>
+          <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Your Fridge (nearest expiry first)</h2>
+          {sortedNonExpired.length === 0 ? (
+            <p className="text-slate-400 text-sm">Your fridge is empty</p>
           ) : (
-            <ul className="flex flex-col gap-2">
-              {soonItems.map(item => (
-                <li key={item.id} className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700 dark:text-slate-300 font-medium">{item.name}</span>
-                  <ExpiryBadge expiryDate={item.expiry_date} />
-                </li>
-              ))}
+            <ul className="flex flex-col gap-2 max-h-80 overflow-y-auto pr-1">
+              {sortedNonExpired.map(item => {
+                const d = daysUntil(item.expiry_date)
+                return (
+                  <li key={item.id} className="flex items-center justify-between text-sm gap-2">
+                    <span className="text-slate-700 dark:text-slate-300 font-medium flex items-center gap-2 min-w-0">
+                      <span className="text-base shrink-0">{emojiFor(d)}</span>
+                      <span className="truncate">{item.name}</span>
+                    </span>
+                    <ExpiryBadge expiryDate={item.expiry_date} />
+                  </li>
+                )
+              })}
             </ul>
           )}
         </div>

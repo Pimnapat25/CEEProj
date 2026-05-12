@@ -15,6 +15,11 @@ export default function ScannerPage({ session }) {
   const [userAllergens, setUserAllergens] = useState([])
   const inputRef = useRef(null)
 
+  // Editable fields populated from the scan result
+  const [editName, setEditName] = useState('')
+  const [editExpiry, setEditExpiry] = useState('')
+  const [editIngredients, setEditIngredients] = useState('')
+
   useEffect(() => {
     getUserAllergens().then(setUserAllergens)
   }, [])
@@ -45,6 +50,9 @@ export default function ScannerPage({ session }) {
     try {
       const data = await scanImage(file, session.access_token)
       setResult(data)
+      setEditName(data.name || '')
+      setEditExpiry(data.expiry_date || '')
+      setEditIngredients(data.ingredients || '')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -54,20 +62,30 @@ export default function ScannerPage({ session }) {
 
   async function handleSave() {
     if (!result) return
+    if (!editName.trim()) {
+      setError('Item name is required')
+      return
+    }
     try {
-      await addItem({ userId: session.user.id, name: result.name, expiryDate: result.expiry_date })
+      await addItem({
+        userId: session.user.id,
+        name: editName.trim(),
+        expiryDate: editExpiry || null,
+        ingredients: editIngredients || null,
+      })
       setSaved(true)
     } catch (err) {
       setError(err.message)
     }
   }
 
-  // Find which of the user's allergens appear in the scan result
   const allergenMatches = result?.allergens
     ? userAllergens.filter(ua =>
         result.allergens.some(ra => ra.toLowerCase().includes(ua.toLowerCase()) || ua.toLowerCase().includes(ra.toLowerCase()))
       )
     : []
+
+  const inputCls = "w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-400"
 
   return (
     <div className="flex flex-col gap-6 max-w-lg mx-auto">
@@ -126,26 +144,49 @@ export default function ScannerPage({ session }) {
         </div>
       )}
 
-      {/* Result */}
+      {/* Result — editable */}
       {result && (
         <div className="flex flex-col gap-4">
-          {/* Allergen alert — shown first and prominently */}
           <AllergyAlert matches={allergenMatches} />
 
           <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm flex flex-col gap-5">
-            {/* Name + expiry */}
             <div>
-              <h2 className="font-semibold text-slate-700 dark:text-slate-200 mb-3">Scan Result</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-slate-400 text-xs uppercase tracking-wide">Item</span>
-                  <p className="font-medium text-slate-800 dark:text-slate-100 mt-0.5">{result.name}</p>
-                </div>
-                <div>
-                  <span className="text-slate-400 text-xs uppercase tracking-wide">Expiry Date</span>
-                  <p className="font-medium text-slate-800 dark:text-slate-100 mt-0.5">{result.expiry_date}</p>
-                </div>
-              </div>
+              <h2 className="font-semibold text-slate-700 dark:text-slate-200 mb-1">Scan Result</h2>
+              <p className="text-xs text-slate-400">Review and edit before saving to your fridge.</p>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">Item Name</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={e => setEditName(e.target.value)}
+                className={inputCls}
+                placeholder="Product name"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">
+                Expiry Date <span className="text-slate-400 normal-case">(leave blank if non-expiring)</span>
+              </label>
+              <input
+                type="date"
+                value={editExpiry || ''}
+                onChange={e => setEditExpiry(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wide">Ingredients</label>
+              <textarea
+                value={editIngredients}
+                onChange={e => setEditIngredients(e.target.value)}
+                rows={4}
+                className={inputCls + ' resize-y'}
+                placeholder="Ingredients list (editable)"
+              />
             </div>
 
             {/* Allergens on label */}
@@ -168,28 +209,9 @@ export default function ScannerPage({ session }) {
               </div>
             )}
 
-            {/* Nutrition facts */}
-            {result.nutrition && Object.keys(result.nutrition).length > 0 && (
-              <div>
-                <span className="text-slate-400 text-xs uppercase tracking-wide">Nutrition Facts</span>
-                <div className="mt-2 border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
-                  <table className="w-full text-sm">
-                    <tbody>
-                      {Object.entries(result.nutrition).map(([key, val], i) => (
-                        <tr key={key} className={i % 2 === 0 ? 'bg-slate-50 dark:bg-slate-700/50' : 'bg-white dark:bg-slate-800'}>
-                          <td className="px-3 py-2 text-slate-600 dark:text-slate-300 capitalize">{key.replace(/_/g, ' ')}</td>
-                          <td className="px-3 py-2 text-slate-800 dark:text-slate-100 font-medium text-right">{val}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
             {/* Save button */}
             {saved ? (
-              <p className="text-fresh-600 dark:text-fresh-400 text-sm font-medium">Saved to your fridge!</p>
+              <p className="text-fresh-600 dark:text-fresh-400 text-sm font-medium">✓ Saved to your fridge!</p>
             ) : (
               <button
                 onClick={handleSave}

@@ -16,6 +16,7 @@ export default function ItemsPage({ session }) {
 
   const [name, setName] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
+  const [ingredients, setIngredients] = useState('')
   const [adding, setAdding] = useState(false)
   const [formError, setFormError] = useState('')
 
@@ -61,14 +62,24 @@ export default function ItemsPage({ session }) {
 
   async function handleAdd(e) {
     e.preventDefault()
-    if (!name.trim() || !expiryDate) return
+    if (!name.trim()) return
     setFormError('')
     setAdding(true)
     try {
-      const newItem = await addItem({ userId, name: name.trim(), expiryDate })
-      setItems(prev => [...prev, newItem].sort((a, b) => new Date(a.expiry_date) - new Date(b.expiry_date)))
+      const newItem = await addItem({
+        userId,
+        name: name.trim(),
+        expiryDate: expiryDate || null,
+        ingredients: ingredients.trim() || null,
+      })
+      setItems(prev => [...prev, newItem].sort((a, b) => {
+        const da = a.expiry_date ? new Date(a.expiry_date).getTime() : Infinity
+        const db = b.expiry_date ? new Date(b.expiry_date).getTime() : Infinity
+        return da - db
+      }))
       setName('')
       setExpiryDate('')
+      setIngredients('')
     } catch (err) {
       setFormError(err.message)
     } finally {
@@ -154,26 +165,35 @@ export default function ItemsPage({ session }) {
       {/* Add item form */}
       <div className="bg-white dark:bg-slate-800 border border-fresh-100 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
         <h2 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">Add Item Manually</h2>
-        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Item name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
+        <form onSubmit={handleAdd} className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="Item name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+              className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
+            />
+            <input
+              type="date"
+              value={expiryDate}
+              onChange={e => setExpiryDate(e.target.value)}
+              className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
+            />
+          </div>
+          <textarea
+            placeholder="Ingredients (optional)"
+            value={ingredients}
+            onChange={e => setIngredients(e.target.value)}
+            rows={3}
+            className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300 resize-y"
           />
-          <input
-            type="date"
-            value={expiryDate}
-            onChange={e => setExpiryDate(e.target.value)}
-            required
-            className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-fresh-300"
-          />
+          <p className="text-xs text-slate-400 -mt-1">Leave expiry date empty for non-expiring items.</p>
           <button
             type="submit"
             disabled={adding}
-            className="flex items-center gap-1.5 px-4 py-2 bg-fresh-500 hover:bg-fresh-600 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-60 shrink-0"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-fresh-500 hover:bg-fresh-600 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-60"
           >
             <Plus size={16} />
             {adding ? 'Adding...' : 'Add'}

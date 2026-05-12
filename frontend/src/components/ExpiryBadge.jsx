@@ -9,9 +9,14 @@ function daysUntil(dateStr) {
 }
 
 export default function ExpiryBadge({ expiryDate }) {
-  const days = daysUntil(expiryDate)
-
   let classes = 'inline-block px-2 py-0.5 rounded-full text-xs font-medium '
+
+  if (!expiryDate) {
+    classes += 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+    return <span className={classes}>Non-expiring</span>
+  }
+
+  const days = daysUntil(expiryDate)
   let label = ''
 
   if (days < 0) {
