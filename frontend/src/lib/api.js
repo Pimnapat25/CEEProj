@@ -5,7 +5,7 @@ const API_URL = import.meta.env.VITE_API_URL
 // OCR scan via backend
 export async function scanImage(file, token) {
   const formData = new FormData()
-  formData.append('image', file)
+  formData.append('file', file)
 
   const res = await fetch(`${API_URL}/scan`, {
     method: 'POST',
